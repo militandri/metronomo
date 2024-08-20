@@ -1,0 +1,70 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.frame {
+    width: 40%;
+    height: 60%;
+    margin: auto;
+    border-radius: 30px;
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.blinker {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-color: green;
+    margin-top: 20px;
+}
+
+.control {
+    justify-content: center;
+    padding-top: 20px;
+}
+
+.bpm-input {
+    margin-top: 30px;
+}
+
+.bpm-label, .sub-label{
+    height: 20px;
+    width: max-content;
+    padding-top: 20px;
+}
+
+
+.subdivision-container {
+    display: flex;
+    height: 30px;
+    margin-top: 30px;
+    align-items: center;
+}
+
+.subdivision-dot {
+    width: 10px;
+    height: 10px;
+    background-color: rgb(102, 130, 213);
+    margin: 5px;
+    border-radius: 100%;
+    transition-property: all;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot-focus {
+    width: 20px;
+    height: 20px;
+}
+
+.accent {
+    width: 20px;
+    height: 20px;
+    background-color: yellow !important;
+}
