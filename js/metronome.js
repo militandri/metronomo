@@ -15,10 +15,16 @@ export default class Metronome {
         
         // Tempo click
         this.time = 500;
+        this.bpm = 120;
 
         // Contatori
         this.playing = false
         this.count = 0;
+    }
+
+    setBPM(bpm){
+        this.bpm = bpm
+        this.time = 60000 / bpm
     }
 
     initializeAudio() {
@@ -76,6 +82,7 @@ export default class Metronome {
 
         // Primo click
         this.click();
+        this.count++
 
         // Faccio partire il metronomo
         this.playMetronome(callback)

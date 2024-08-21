@@ -11,13 +11,16 @@
         <script type="module" src="./js/script.js"></script>
         <div class="frame">
             <!--BPM-->
-            <p class="bpm-label">BPM: <span id="bpm-text"></span></p>
-            <input type="range" id="bpm" class="bpm-input" min="20" max="400" value="120">
+            
+            <div class="bpm-input-circle" id="bpm-circle">
+                <div class="tap-tempo" id="tap-button">
+                    <p class="bpm-label" id="bpm-text"></p>
+                </div>
+            </div>
             <!--Pulsanti-->
             <div class="control">
                 <button id="play-button">Play</button>
                 <button id="stop-button">Stop</button>
-                <button id="tap-button">Tap</button>
             </div>
             <!--Suddivisioni-->
             <p class="sub-label">Subdivision: <span id="sub-text"></span></p>
