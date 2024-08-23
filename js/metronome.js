@@ -8,7 +8,7 @@ export default class Metronome {
 
         // Impostazioni metronomo
         // Suddivisioni
-        this.subs = [false];
+        this.subs = [];
 
         // Accento sull'uno
         this.accent = true;
@@ -80,10 +80,6 @@ export default class Metronome {
         // Faccio partire l'oscillatore
         this.oscillator.start();
 
-        // Primo click
-        this.click();
-        this.count++
-
         // Faccio partire il metronomo
         this.playMetronome(callback)
     }
@@ -97,9 +93,9 @@ export default class Metronome {
     playMetronome(callback){
         setTimeout(() => {
             if(this.playing){
-                callback();
+                callback ? callback(this.count) : '';
                 this.click();
-                this.count == this.subs.length - 1 ? this.count = 0 : this.count++
+                this.count >= this.subs.length - 1 ? this.count = 0 : this.count++
                 this.playMetronome(callback)
             }else{
                 this.stop();

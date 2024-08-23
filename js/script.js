@@ -5,28 +5,27 @@ const maxBpm = 400
 const minBpm = 20
 
 // Buttons
-const play = document.getElementById("play-button")
-const stop = document.getElementById("stop-button")
+const togglePlay = document.getElementById("play-button")
 const tap = document.getElementById("tap-button")
-
-// Blinker
-const blinker = document.getElementById("blinker")
+const removeSub = document.getElementById('remove-sub-button')
+const addSub = document.getElementById('add-sub-button')
 
 // Inputs
-const subInput = document.getElementById("sub")
 const bpmCircle = document.getElementById("bpm-circle")
 
 // Labels
 const bpmLabel = document.getElementById("bpm-text")
-const subLabel = document.getElementById("sub-text")
 
 // Divs
-const subDiv = document.getElementById("sub-div")
-const accent = document.getElementById("accent-on-one")
+const subContainer = document.getElementById("sub-container")
+const playDiv = document.getElementById("play-div")
+
+// Icons
+const playIcon = document.getElementById("play-icon")
 
 // Utility per il metronomo
-let accentOnOne = true
 let tapTempoTimeout = null
+let playing = false
 
 // Utility per bpmCircle
 let bpmPointerPos = null
@@ -35,7 +34,6 @@ let dragging = false
 let bpmOnDraggingStart = null
 
 // Array di boolean che contiene gli accenti sulle suddivisioni
-let subArr = []
 let tapTempoArr = []
 
 // Metronomo
@@ -69,25 +67,10 @@ tap.addEventListener('mouseup', () => {
     }
 })
 
-// Listener per l'accento sull'uno
-accent.addEventListener('change', () => {
-    accentOnOne = accent.checked
-    metronome.accent = accentOnOne
-    accentOnOne ? subDiv.children[0].classList.add('accent') : subDiv.children[0].classList.remove('accent')
-})
-
-// Listener per il numero di suddivisioni
-subInput.addEventListener("input", () => {
-    subLabel.textContent = subInput.value
-    updateSubDots(subInput.value)
-    metronome.accent ? subDiv.children[0].classList.add('accent') : subDiv.children[0].classList.remove('accent')
-})
-
 // Mousedown per controllo bpm con trascinamento
 bpmCircle.addEventListener('mousedown', (event) => {
     bpmPointerPos = event.clientY
     bpmOnDraggingStart = metronome.bpm
-    console.log(bpmOnDraggingStart)
     tap.classList.add("blink-tap-in")
     tap.classList.remove("blink-tap-out")
 })
@@ -133,74 +116,92 @@ document.addEventListener('mouseup', () => {
     tap.classList.remove("blink-tap-in")
 })
 
-play.addEventListener("click", () => {
-    metronome.audioContext.resume()
-    .then(() => {
-        metronome.play(() => {
-            pulse(blinker)
-        });
-    })
+togglePlay.addEventListener("click", () => {
+    if(!playing){
+        metronome.audioContext.resume()
+        .then(() => {
+            metronome.play(blinkDot)
+            playing = true
+            playDiv.classList.toggle("fa-play-2")
+            setTimeout(() => {
+                playDiv.classList.toggle("fa-play-2")
+                playIcon.classList.toggle("fa-play")
+                playIcon.classList.toggle("fa-stop")
+            }, 100);
+        })
+    }else{
+        metronome.stop()
+        playing = false
+        playDiv.classList.toggle("fa-play-2")
+        setTimeout(() => {
+            playDiv.classList.toggle("fa-play-2")
+            playIcon.classList.toggle("fa-play")
+            playIcon.classList.toggle("fa-stop")
+        }, 100);
+    }
 })
 
-stop.addEventListener("click", () => {
-    metronome.stop()
+removeSub.addEventListener("click", () => {
+    metronome.subs.length > 1 ? removeSubDot() : ''
+})
+
+addSub.addEventListener('click', () => {
+    metronome.subs.length < 8 ? addSubDot() : ''
 })
 
 // Aggiorna i div delle suddivisioni in base alle impostazioni del metronomo
-function updateSubDots(nDots) {
-    let dots = Array.from(subDiv.getElementsByClassName('subdivision-dot'));
-    const delta = dots.length - nDots
-    if(delta > 0){
-        for(let i = 0; i < delta; i++){
-            removeSubDot()
-        }
-    }else{
-        for(let i = 0; i < Math.abs(delta); i++){
-            addSubDot()
-        }
-    }
-    metronome.subs = subArr
+function updateSubDots() {
+    let dots = Array.from(subContainer.getElementsByClassName('dot-container'));
+    dots.forEach((dot, index) => {
+        dot.style.transition = 'transform 0.5s ease'
+        setTimeout(() => {
+            dot.style.transform = `rotate(${360/dots.length * index}deg)`
+        }, 10);
+    })
 }
 
 // Rimuove una suddivisione
 function removeSubDot(){
-    subDiv.children[subDiv.children.length - 1].remove()
-    subArr.pop()
+    const dot = subContainer.children[subContainer.children.length - 1]
+    dot.remove()
+    metronome.subs.pop()
+    updateSubDots()
 }
 
 // Aggiunge una suddivisione
 function addSubDot() {
     let dot = document.createElement("div")
+    let dotDiv = document.createElement('div')
+    dotDiv.classList.add('dot-container')
     dot.classList.add("subdivision-dot")
-    subDiv.appendChild(dot)
-    subArr.push(false)
+    dotDiv.appendChild(dot)
+    subContainer.appendChild(dotDiv)
+    metronome.subs.push(false)
+    dotDiv.style.transform = `rotate(${360/(metronome.subs.length - 1) * (metronome.subs.length > 1 ? (metronome.subs.length - 2) : '')}deg)`
+    updateSubDots()
 
     // Callback per attivare o disattivare un accento su suddivisione
     dot.addEventListener('click', () => {
-        dot.classList.contains('dot-focus') ? dot.classList.remove('dot-focus') : dot.classList.add('dot-focus')
-        let dots = Array.from(subDiv.getElementsByClassName('subdivision-dot'));
+        let dots = Array.from(subContainer.getElementsByClassName('dot-container')).map(el => el.querySelector('.subdivision-dot'));
         let index = dots.indexOf(dot);
-        subArr[index] = dot.classList.contains('dot-focus')
+        index == 0 ? toggleDotType(dot, true) : toggleDotType(dot, false)
+        metronome.subs[index] = dot.classList.contains('dot-focus')
     })
 }
 
 function initialize(){
     // Labels
     bpmLabel.textContent = metronome.bpm
-    subLabel.textContent = subInput.value
 
     // Aggiorno le suddivisioni
-    updateSubDots(subInput.value)
+    addSubDot()
+    let dots = Array.from(subContainer.getElementsByClassName('dot-container'));
+    dots.forEach((dot, index) => {
+        dot.style.transform += `rotate(${index * 360/dots.length}deg)`
+    })
     updateBpmCircle(metronome.bpm)
-    subDiv.children[0].classList.add('accent')
-}
-
-// Fa lampeggiare il blinker
-function pulse(blinker) {
-    blinker.style.backgroundColor = 'red'
-    setTimeout(() => {
-        blinker.style.backgroundColor = 'green'
-    }, 50);
+    subContainer.querySelectorAll(".dot-container").item(0).querySelectorAll('.subdivision-dot').item(0).classList.add('accent')
+    metronome.accent = true
 }
 
 function calculateBPMFromTap(arr){
@@ -216,4 +217,30 @@ function calculateBPMFromTap(arr){
 function updateBpmCircle(bpm){
     const deg = (bpm - 19) / 380 * 360
     bpmCircle.style.setProperty('--bpm-gradient-deg', deg + 'deg')
+}
+
+function toggleDotType(dot, withAccent) {
+    const classList = dot.classList;
+
+    if (classList.contains('accent')) {
+        classList.remove('accent');
+        classList.add('dot-focus');
+        metronome.accent = false
+    } else if (classList.contains('dot-focus')) {
+        classList.remove('dot-focus');
+    } else if (!classList.contains('accent') && !classList.contains('dot-focus')) {
+        if (withAccent) {
+            classList.add('accent');
+            metronome.accent = true
+        } else {
+            classList.add('dot-focus');
+        }
+    }
+}
+
+function blinkDot(count){
+    subContainer.querySelectorAll(".dot-container").item(count).querySelector('.subdivision-dot').classList.add('blinking');
+    setTimeout(() => {
+        subContainer.querySelectorAll(".dot-container").item(count).querySelector('.subdivision-dot').classList.remove('blinking');
+    }, 100);
 }

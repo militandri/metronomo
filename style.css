@@ -3,8 +3,14 @@
 :root{
     --bpm-gradient-deg: 0deg;
     --background-color: white;
-    --bpm-circle-primary: #996acd;
-    --bpm-circle-secondary: #c6c6c6;
+    --primary: #3b526e;
+    --secondary: #455d7a;
+    --warn: #f95959;
+    --accent: #fdb44b;
+    --light: #e3e3e3;
+    --light-blue: #455d7a32;
+    --neutral: #e0ebf0;
+    --icon-color: #233142;
 }
 
 body {
@@ -16,78 +22,88 @@ body {
     user-select: none;
 }
 
-.frame {
-    width: 60%;
-    height: 80%;
-    margin: auto;
-    border-radius: 30px;
+.control-container {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.blinker {
-    width: 40px;
-    height: 40px;
-    border-radius: 100%;
-    background-color: green;
-    margin-top: 20px;
-}
-
-.control {
     justify-content: center;
-    padding-top: 20px;
-}
-
-.bpm-input {
-    margin-top: 30px;
-}
-
-.bpm-label {
-    width: max-content;
-    z-index: 2;
-    font-size: 2rem;
-    user-select: none;
-}
-
-.subdivision-container {
-    display: flex;
-    height: 30px;
-    margin-top: 30px;
     align-items: center;
+    margin-top: auto;
 }
 
 .subdivision-dot {
-    width: 10px;
-    height: 10px;
-    background-color: rgb(102, 130, 213);
+    margin: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--secondary);
     margin: 5px;
     border-radius: 100%;
     transition-property: all;
     transition-duration: 200ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    pointer-events: all;
+}
+
+.subdivision-container {
+    position: absolute;
+    display: flex;
+    width: 160%;
+    height: 160%;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.dot-container {
+    display: flex;
+    width: 30px;
+    height: 100%;
+    position: absolute;
+    pointer-events: none;
+}
+
+.frame {
+    width: 40%;
+    height: 70%;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid var(--neutral);
+    overflow: hidden;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.bpm-label {
+    width: max-content;
+    z-index: 2;
+    font-size: 3rem;
 }
 
 .dot-focus {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
+    margin: 0;
 }
 
 .accent {
-    width: 20px;
-    height: 20px;
-    background-color: yellow !important;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    background-color: var(--accent) !important;
 }
 
 .bpm-input-circle {
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
-    background: conic-gradient(var(--bpm-circle-primary) var(--bpm-gradient-deg), var(--bpm-circle-secondary) 0deg);
+    background: conic-gradient(var(--accent) var(--bpm-gradient-deg), var(--light) 0deg);
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .bpm-input-circle::after{
@@ -104,7 +120,7 @@ body {
     position: absolute;
     width: 85%;
     height: 85%;
-    background: radial-gradient(circle, #dfe0fa, transparent);
+    background: radial-gradient(circle, var(--neutral), transparent);
     z-index: 1;
     border-radius: 50%;
     display: flex;
@@ -119,8 +135,7 @@ body {
     border-radius: 50%;
     display: block;
     position: absolute;
-    background: radial-gradient(circle, #dfe0fa, #bbbdff);
-    opacity: 0%;
+    background: radial-gradient(circle, white, var(--light-blue));
 }
 
 .blink-tap-in::after {
@@ -131,4 +146,49 @@ body {
 .blink-tap-out::after {
     opacity: 0%;
     transition: opacity 0.3s ease-out;
+}
+
+.action-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 5rem);
+    width: 100%;
+    margin-top: auto;
+    grid-gap: 1px;
+}
+
+.action-button {
+    width: 100%;
+    height: 5rem;
+    border: none;
+    background-color: var(--neutral);
+    transition: background-color 0.2s ease-out;
+}
+
+.fa-play-2 {
+    transform: rotateY(90deg);
+    transition: transform 0.1s linear;
+}
+
+#play-div {
+    transition: transform 0.1s linear;
+}
+
+#play-button {
+    grid-column: span 2;
+}
+
+.action-button:hover{
+    background-color: var(--primary);
+    --icon-color: white;
+}
+
+.fa-solid {
+    transition: color 0.1s ease-in-out;
+    color: var(--icon-color);
+}
+
+.blinking {
+    transform: scale(1.3);
+    transition: transform 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
