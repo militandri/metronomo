@@ -3,15 +3,18 @@ import Metronome from "./metronome.js"
 // Global
 const maxBpm = 400
 const minBpm = 20
+let settingsExtended = false
 
 // Buttons
-const togglePlay = document.getElementById("play-button")
-const tap = document.getElementById("tap-button")
-const removeSub = document.getElementById('remove-sub-button')
-const addSub = document.getElementById('add-sub-button')
+const togglePlayButton = document.getElementById("play-button")
+const tapButton = document.getElementById("tap-button")
+const removeSubButton = document.getElementById('remove-sub-button')
+const addSubButton = document.getElementById('add-sub-button')
+const muteSubButton = document.getElementById('mute-subdivision-button')
 
 // Inputs
 const bpmCircle = document.getElementById("bpm-circle")
+const volumeCircle = document.getElementById("volume-circle")
 
 // Labels
 const bpmLabel = document.getElementById("bpm-text")
@@ -19,6 +22,10 @@ const bpmLabel = document.getElementById("bpm-text")
 // Divs
 const subContainer = document.getElementById("sub-container")
 const playDiv = document.getElementById("play-div")
+const caret = document.getElementById("caret")
+const settings = document.getElementById("settings")
+const settingsContainer = document.getElementById("settings-container")
+const darkModeSwitch = document.getElementById('dark-mode-switch')
 
 // Icons
 const playIcon = document.getElementById("play-icon")
@@ -28,10 +35,12 @@ let tapTempoTimeout = null
 let playing = false
 
 // Utility per bpmCircle
-let bpmPointerPos = null
+let dragStartPos = null
 let newBPM = null
+let newVolume = null
 let dragging = false
 let bpmOnDraggingStart = null
+let volumeOnStartDragging = null
 
 // Array di boolean che contiene gli accenti sulle suddivisioni
 let tapTempoArr = []
@@ -43,7 +52,7 @@ const metronome = new Metronome()
 initialize();
 
 // Tap Tempo
-tap.addEventListener('mouseup', () => {
+tapButton.addEventListener('mouseup', () => {
     if(!dragging){
         clearTimeout(tapTempoTimeout)
         tapTempoTimeout = setTimeout(() => {
@@ -69,30 +78,37 @@ tap.addEventListener('mouseup', () => {
 
 // Mousedown per controllo bpm con trascinamento
 bpmCircle.addEventListener('mousedown', (event) => {
-    bpmPointerPos = event.clientY
+    dragStartPos = event.clientY
     bpmOnDraggingStart = metronome.bpm
-    tap.classList.add("blink-tap-in")
-    tap.classList.remove("blink-tap-out")
+    tapButton.classList.add("blink-tap-in")
+    tapButton.classList.remove("blink-tap-out")
+})
+
+volumeCircle.addEventListener('mousedown', (event) => {
+    dragStartPos = event.clientY
+    volumeOnStartDragging = metronome.volume
 })
 
 // Mousemove per modifica bpm con trascinamento
 document.addEventListener('mousemove', (event) => {
     // Controlla se è stato definito il punto di partenza per il dragging (escludendo quindi che il mouse sia stato premuto ma non rilasciato)
-    if(bpmOnDraggingStart){
+    if(bpmOnDraggingStart || volumeOnStartDragging){
         // Calcolo distanza tra il punto in cui si è cliccato e il punto attuale del mouse
-        const deltaY = ((bpmPointerPos - event.clientY) / 0.8)
+        const deltaY = ((dragStartPos - event.clientY) / 0.8)
         
         // Se il trascinamento è maggiore di un certo range
         if(Math.abs(deltaY) > 20 && !dragging){
             // Entra in modalità dragging
             dragging = true
 
-            // Toglie la treshold iniziale
-            deltaY <= 0 ? bpmOnDraggingStart += 10 : bpmOnDraggingStart -= 10
+            if(bpmOnDraggingStart){
+                // Toglie la treshold iniziale
+                deltaY <= 0 ? bpmOnDraggingStart += 10 : bpmOnDraggingStart -= 10
+            }
         }
 
         // Se si è in modalità dragging modifica i bpm di conseguenza
-        if(dragging){
+        if(dragging && bpmOnDraggingStart){
             let deltaBPM 
             deltaBPM = deltaY / 2
             newBPM = Math.floor(bpmOnDraggingStart + deltaBPM)
@@ -101,22 +117,33 @@ document.addEventListener('mousemove', (event) => {
             bpmLabel.textContent = newBPM
             updateBpmCircle(newBPM)
             metronome.setBPM(newBPM)
+        }else if(dragging && volumeOnStartDragging){
+            let deltaVolume
+            deltaVolume = deltaY / 200
+            newVolume = volumeOnStartDragging + deltaVolume
+            if(newVolume <= 1 && newVolume >= 0){
+                metronome.volume = newVolume
+            }
+            newVolume >= 1 ? metronome.volume = 1 : ''
+            newVolume <= 0 ? metronome.volume = 0.001 : ''
+            updateVolumeCircle(metronome.volume)
         }
     }
 })
 
 document.addEventListener('mouseup', () => {
     if(dragging){
-        metronome.setBPM(newBPM)
         dragging = false
         newBPM = 0
+        newVolume = 0
     }
+    volumeOnStartDragging = null
     bpmOnDraggingStart = null
-    tap.classList.add("blink-tap-out")
-    tap.classList.remove("blink-tap-in")
+    tapButton.classList.add("blink-tap-out")
+    tapButton.classList.remove("blink-tap-in")
 })
 
-togglePlay.addEventListener("click", () => {
+togglePlayButton.addEventListener("click", () => {
     if(!playing){
         metronome.audioContext.resume()
         .then(() => {
@@ -141,12 +168,46 @@ togglePlay.addEventListener("click", () => {
     }
 })
 
-removeSub.addEventListener("click", () => {
+removeSubButton.addEventListener("click", () => {
     metronome.subs.length > 1 ? removeSubDot() : ''
 })
 
-addSub.addEventListener('click', () => {
+addSubButton.addEventListener('click', () => {
     metronome.subs.length < 8 ? addSubDot() : ''
+})
+
+settingsContainer.addEventListener("click", () => {
+    if(!settingsExtended){
+        settingsExtended = true
+        const caret = document.getElementsByClassName('fa-caret-right').item(0)
+        settingsContainer.classList.add("settings-expanded")
+        caret.style.transform = 'rotate(-180deg)'
+        settings.style.opacity = '100%'
+    }
+})
+
+caret.addEventListener('click', () => {
+    const caret = document.getElementsByClassName('fa-caret-right').item(0)
+    settingsContainer.classList.remove("settings-expanded")
+    caret.style.transform = 'rotate(0deg)'
+    settings.style.opacity = '0%'
+    setTimeout(() => {
+        settingsExtended = false
+    }, 500);
+})
+
+muteSubButton.addEventListener('click', () => {
+    metronome.subAccent = !metronome.subAccent
+    muteSubButton.classList.toggle("option-active")
+})
+
+darkModeSwitch.addEventListener('click', () => {
+    const sun = document.getElementById('sun')
+    const moon = document.getElementById('moon')
+    darkModeSwitch.classList.toggle('dark-mode-active')
+    document.body.classList.toggle('dark-mode')
+    sun.classList.toggle('move-dark-mode-icon')
+    moon.classList.toggle('move-dark-mode-icon')
 })
 
 // Aggiorna i div delle suddivisioni in base alle impostazioni del metronomo
@@ -217,6 +278,11 @@ function calculateBPMFromTap(arr){
 function updateBpmCircle(bpm){
     const deg = (bpm - 19) / 380 * 360
     bpmCircle.style.setProperty('--bpm-gradient-deg', deg + 'deg')
+}
+
+function updateVolumeCircle(volume){
+    const deg = 360 * volume
+    volumeCircle.style.setProperty('--volume-gradient-deg', deg + 'deg')
 }
 
 function toggleDotType(dot, withAccent) {

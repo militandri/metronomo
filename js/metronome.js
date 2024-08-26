@@ -5,10 +5,12 @@ export default class Metronome {
         this.gainNode = null;
         this.oscillator = null;
         this.filter = null;
+        this.volume = 1
 
         // Impostazioni metronomo
         // Suddivisioni
         this.subs = [];
+        this.subAccent = true
 
         // Accento sull'uno
         this.accent = true;
@@ -58,7 +60,7 @@ export default class Metronome {
             this.playClick(1050)
             this.filter.frequency.setValueAtTime(700, this.audioContext.currentTime + 0.1);
         }else{
-            this.playClick()
+            this.subAccent ? this.playClick() : ''
         }
     }
 
@@ -66,7 +68,7 @@ export default class Metronome {
     playClick(frequency) {
         this.oscillator.frequency.setValueAtTime(frequency ? frequency : 1000, this.audioContext.currentTime);
         this.gainNode.gain.cancelScheduledValues(this.audioContext.currentTime);
-        this.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
         this.gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
         this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime + 0.1);
     }
