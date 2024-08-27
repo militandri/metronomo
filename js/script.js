@@ -4,6 +4,7 @@ import Metronome from "./metronome.js"
 const maxBpm = 400
 const minBpm = 20
 let settingsExtended = false
+let darkModeActive = false
 
 // Buttons
 const togglePlayButton = document.getElementById("play-button")
@@ -50,6 +51,10 @@ const metronome = new Metronome()
 
 // Imposto i valori iniziali
 initialize();
+
+window.addEventListener('load', () => {
+    localStorage.getItem('dark-mode') ? darkMode(true) : darkMode(false)
+})
 
 // Tap Tempo
 tapButton.addEventListener('mouseup', () => {
@@ -202,12 +207,9 @@ muteSubButton.addEventListener('click', () => {
 })
 
 darkModeSwitch.addEventListener('click', () => {
-    const sun = document.getElementById('sun')
-    const moon = document.getElementById('moon')
-    darkModeSwitch.classList.toggle('dark-mode-active')
-    document.body.classList.toggle('dark-mode')
-    sun.classList.toggle('move-dark-mode-icon')
-    moon.classList.toggle('move-dark-mode-icon')
+    darkModeActive = !darkModeActive
+    darkMode(darkModeActive)
+    localStorage.setItem('dark-mode', darkModeActive)
 })
 
 // Aggiorna i div delle suddivisioni in base alle impostazioni del metronomo
@@ -309,4 +311,20 @@ function blinkDot(count){
     setTimeout(() => {
         subContainer.querySelectorAll(".dot-container").item(count).querySelector('.subdivision-dot').classList.remove('blinking');
     }, 100);
+}
+
+function darkMode(active){
+    const sun = document.getElementById('sun')
+    const moon = document.getElementById('moon')
+    if(active){
+        darkModeSwitch.classList.add('dark-mode-active')
+        document.body.classList.add('dark-mode')
+        sun.classList.remove('move-dark-mode-icon')
+        moon.classList.add('move-dark-mode-icon')
+    }else{
+        darkModeSwitch.classList.remove('dark-mode-active')
+        document.body.classList.remove('dark-mode')
+        sun.classList.add('move-dark-mode-icon')
+        moon.classList.remove('move-dark-mode-icon')
+    }
 }
